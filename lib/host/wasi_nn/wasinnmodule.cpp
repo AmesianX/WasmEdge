@@ -8,7 +8,6 @@ namespace WasmEdge {
 namespace Host {
 
 WasiNNModule::WasiNNModule() : ModuleInstance("wasi_ephemeral_nn") {
-
   addHostFunc("load", std::make_unique<WasiNNLoad>(Ctx));
   addHostFunc("init_execution_context",
               std::make_unique<WasiNNInitExecCtx>(Ctx));

@@ -46,7 +46,7 @@ class WasiNNGetOuput : public WasiNN<WasiNNGetOuput> {
 public:
   WasiNNGetOuput(WASINN::WasiNNContext &HostCtx) : WasiNN(HostCtx) {}
   Expect<uint32_t> body(Runtime::Instance::MemoryInstance *, uint32_t Context,
-                        uint32_t Index, uint32_t OutBuffer,
+                        uint32_t Index, uint32_t OutBufferPtr,
                         uint32_t OutBufferMaxSize, uint32_t BytesWrittenPtr);
 };
 

@@ -9,6 +9,7 @@
 #include <vector>
 
 #ifdef WASMEDGE_WASINN_BUILD_OPENVINO
+#include "common/log.h"
 #include <c_api/ie_c_api.h>
 #endif
 
@@ -21,6 +22,10 @@ enum class ErrNo : uint32_t {
   InvalidArgument = 1, // Caller module passed an invalid argument.
   MissingMemory = 2,   // Caller module is missing a memory export.
   Busy = 3             // Device or resource busy.
+};
+
+enum class Backend : uint8_t {
+  OpenVINO = 0,
 };
 
 using Graph = uint32_t;
@@ -44,8 +49,15 @@ public:
 
 class WasiNNContext {
 public:
-  WasiNNContext() : ModelsNum(-1), ExecutionsNum(-1) {
-    BackendsMapping.emplace("OpenVINO", static_cast<WASINN::GraphEncoding>(0));
+  WasiNNContext() noexcept {
+#ifdef WASMEDGE_WASINN_BUILD_OPENVINO
+    if (ie_core_create("", &OpenVINOCore) != IEStatusCode::OK) {
+      spdlog::error(
+          "[WASI-NN] Error happened when initializing OpenVINO core.");
+    }
+#endif
+    GraphBackends.reserve(16U);
+    GraphContextBackends.reserve(16U);
   }
   ~WasiNNContext() {
 #ifdef WASMEDGE_WASINN_BUILD_OPENVINO
@@ -72,11 +84,8 @@ public:
   }
 
   // context for implementing WASI-NN
-  int ModelsNum;
-  int ExecutionsNum;
-  std::vector<GraphEncoding> GraphBackends;
-  std::vector<GraphEncoding> GraphContextBackends;
-  std::map<std::string, GraphEncoding> BackendsMapping;
+  std::vector<Backend> GraphBackends;
+  std::vector<Backend> GraphContextBackends;
 #ifdef WASMEDGE_WASINN_BUILD_OPENVINO
   ie_core_t *OpenVINOCore = nullptr;
   std::vector<ie_network_t *> OpenVINONetworks;
